@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Carabobo - Reservas</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CAMBIA EL FAVICON AQUÍ -->
+    <link rel="icon" type="image/x-icon" href="#">
+</head>
+<body>
+    <!-- Header/Navbar -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <!-- LOGO - CAMBIA LA RUTA DE LA IMAGEN Y COLORES EN CSS -->
+                <div class="logo">
+                    <img src="#" alt="Logo Bingo Carabobo" id="logo-img">
+                    <span class="logo-text">BINGO CARABOBO</span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="#inicio"><i class="fas fa-home"></i> Inicio</a></li>
+                    <li><a href="#reservar"><i class="fas fa-calendar-check"></i> Reservar</a></li>
+                    <li><a href="#eventos"><i class="fas fa-calendar-alt"></i> Eventos</a></li>
+                    <li><a href="#galeria"><i class="fas fa-images"></i> Galería</a></li>
+                    <li><a href="#contacto"><i class="fas fa-phone-alt"></i> Contacto</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <button class="btn-login" id="loginBtn">
+                        <i class="fas fa-user"></i> Iniciar Sesión
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="inicio">
+        <div class="container">
+            <div class="hero-content">
+                <h1>¡Diversión y Emoción en el Bingo Carabobo!</h1>
+                <p>Reserva tu mesa para la mejor experiencia de bingo en la ciudad</p>
+                <a href="#reservar" class="btn-hero">Reservar Ahora</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Reservas -->
+    <section class="reservation-section" id="reservar">
+        <div class="container">
+            <h2 class="section-title">Reserva Tu Mesa</h2>
+            
+            <div class="reservation-form-container">
+                <form id="reservationForm" class="reservation-form">
+                    <div class="form-group">
+                        <label for="nombre"><i class="fas fa-user"></i> Nombre Completo</label>
+                        <input type="text" id="nombre" name="nombre" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="telefono"><i class="fas fa-phone"></i> Teléfono</label>
+                            <input type="tel" id="telefono" name="telefono" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fecha"><i class="fas fa-calendar"></i> Fecha</label>
+                            <input type="date" id="fecha" name="fecha" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="hora"><i class="fas fa-clock"></i> Hora</label>
+                            <select id="hora" name="hora" required>
+                                <option value="">Selecciona hora</option>
+                                <option value="15:00">15:00 PM</option>
+                                <option value="17:00">17:00 PM</option>
+                                <option value="19:00">19:00 PM</option>
+                                <option value="21:00">21:00 PM</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="personas"><i class="fas fa-users"></i> Número de Personas</label>
+                            <select id="personas" name="personas" required>
+                                <option value="1">1 persona</option>
+                                <option value="2" selected>2 personas</option>
+                                <option value="3">3 personas</option>
+                                <option value="4">4 personas</option>
+                                <option value="5">5 personas</option>
+                                <option value="6">6 personas</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="mesa"><i class="fas fa-chair"></i> Tipo de Mesa</label>
+                            <select id="mesa" name="mesa" required>
+                                <option value="standard">Mesa Estándar</option>
+                                <option value="vip">Mesa VIP</option>
+                                <option value="privada">Sala Privada</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="comentarios"><i class="fas fa-comment"></i> Comentarios Especiales</label>
+                        <textarea id="comentarios" name="comentarios" rows="3"></textarea>
+                    </div>
+                    
+                    <!-- Subida de comprobante -->
+                    <div class="form-group">
+                        <label for="comprobante"><i class="fas fa-file-upload"></i> Comprobante de Pago (opcional)</label>
+                        <div class="upload-area" id="uploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Arrastra tu comprobante o haz clic para subir</p>
+                            <input type="file" id="comprobante" name="comprobante" accept="image/*,.pdf">
+                        </div>
+                        <div class="upload-preview" id="uploadPreview"></div>
+                    </div>
+                    
+                    <div class="form-submit">
+                        <button type="submit" class="btn-submit" id="submitBtn">
+                            <i class="fas fa-paper-plane"></i> Confirmar Reserva
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="reservation-summary">
+                    <h3><i class="fas fa-receipt"></i> Resumen de tu Reserva</h3>
+                    <div class="summary-content">
+                        <div class="summary-item">
+                            <span>Mesa Estándar (2 personas):</span>
+                            <span class="price">$25.00</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Servicio:</span>
+                            <span class="price">$5.00</span>
+                        </div>
+                        <div class="summary-item total">
+                            <span>Total a pagar:</span>
+                            <span class="price">$30.00</span>
+                        </div>
+                        <div class="payment-info">
+                            <h4><i class="fas fa-credit-card"></i> Información de Pago</h4>
+                            <p>Banco: Banco de Venezuela</p>
+                            <p>Cuenta: 0102-1234-5678-9012</p>
+                            <p>Titular: Bingo Carabobo C.A.</p>
+                            <p>RIF: J-12345678-9</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Eventos -->
+    <section class="events-section" id="eventos">
+        <div class="container">
+            <h2 class="section-title">Próximos Eventos Especiales</h2>
+            <div class="events-grid">
+                <div class="event-card">
+                    <div class="event-date">
+                        <span class="day">15</span>
+                        <span class="month">OCT</span>
+                    </div>
+                    <div class="event-content">
+                        <h3>Bingo Nocturno</h3>
+                        <p>Premios especiales y música en vivo</p>
+                        <span class="event-time"><i class="fas fa-clock"></i> 20:00 - 23:00</span>
+                    </div>
+                </div>
+                <div class="event-card">
+                    <div class="event-date">
+                        <span class="day">22</span>
+                        <span class="month">OCT</span>
+                    </div>
+                    <div class="event-content">
+                        <h3>Bingo Familiar</h3>
+                        <p>Diversión para toda la familia</p>
+                        <span class="event-time"><i class="fas fa-clock"></i> 16:00 - 19:00</span>
+                    </div>
+                </div>
+                <div class="event-card">
+                    <div class="event-date">
+                        <span class="day">29</span>
+                        <span class="month">OCT</span>
+                    </div>
+                    <div class="event-content">
+                        <h3>Gran Jackpot</h3>
+                        <p>Premio acumulado: $5,000</p>
+                        <span class="event-time"><i class="fas fa-clock"></i> 19:00 - 22:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contacto">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Bingo Carabobo</h3>
+                    <p>El mejor lugar para disfrutar del bingo en un ambiente seguro y divertido.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Contacto</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> Av. Principal, Carabobo, Venezuela</p>
+                    <p><i class="fas fa-phone"></i> (0241) 123-4567</p>
+                    <p><i class="fas fa-envelope"></i> info@bingocarabobo.com</p>
+                    <p><i class="fas fa-clock"></i> Lun-Dom: 14:00 - 23:00</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Enlaces Rápidos</h3>
+                    <ul>
+                        <li><a href="#inicio">Inicio</a></li>
+                        <li><a href="#reservar">Reservar</a></li>
+                        <li><a href="#eventos">Eventos</a></li>
+                        <li><a href="#">Términos y Condiciones</a></li>
+                        <li><a href="#">Política de Privacidad</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 Bingo Carabobo. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal de Confirmación -->
+    <div class="modal" id="confirmationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-circle"></i> Reserva Confirmada</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Tu reserva ha sido registrada exitosamente.</p>
+                <p>Recibirás un correo de confirmación en los próximos minutos.</p>
+                <div class="reservation-details" id="modalDetails"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal" id="closeModalBtn">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="script.js"></script>
+</body>
+</html>
