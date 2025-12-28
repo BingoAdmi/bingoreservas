@@ -541,3 +541,42 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 console.log('Panel de administración inicializado');
+
+// Función para enviar WhatsApp
+function sendWhatsAppNotification(reservation) {
+    const phone = reservation.telefono.replace(/\D/g, '');
+    const message = `✅ SU RESERVA HA SIDO CONFIRMADA\n\n` +
+                   `Hola ${reservation.nombre},\n` +
+                   `Tu reserva para el ${reservation.fecha} a las ${reservation.hora} ha sido confirmada.\n` +
+                   `Mesa: ${getMesaText(reservation.mesa)} para ${reservation.personas} personas.\n` +
+                   `Total: $${reservation.total.toFixed(2)}\n\n` +
+                   `Presenta este código: BINGO-${reservation.id.substring(0, 8).toUpperCase()}`;
+    
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappURL = `https://wa.me/${phone}?text=${encodedMessage}`;
+    
+    // Abre WhatsApp Web
+    window.open(whatsappURL, '_blank');
+}
+
+// Modificar confirmReservation para incluir WhatsApp
+window.confirmReservation = async function(reservationId) {
+    if (!confirm('¿Confirmar esta reserva y enviar WhatsApp?')) return;
+    
+    try {
+        const reservationRef = doc(db, "reservas", reservationId);
+        await updateDoc(reservationRef, {
+            estado: 'confirmado',
+            confirmadoAt: serverTimestamp()
+        });
+        
+        const reservation = allReservations.find(r => r.id === reservationId);
+        sendWhatsAppNotification(reservation);
+        
+        loadReservations();
+        
+    } catch (error) {
+        console.error("Error:", error);
+        alert('Error al confirmar la reserva');
+    }
+};
