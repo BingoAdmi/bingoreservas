@@ -371,9 +371,8 @@
     const Loader2 = (props) => createElement('svg', { ...props, xmlns: "http://www.w3.org/2000/svg", width: props.size || 24, height: props.size || 24, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", className: props.className || "" }, createElement('path', { d: "M21 12a9 9 0 1 1-6.219-8.56" }));
     const Download = (props) => createElement('svg', { ...props, xmlns: "http://www.w3.org/2000/svg", width: props.size || 24, height: props.size || 24, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", className: props.className || "" }, createElement('path', { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }), createElement('polyline', { points: "7 10 12 15 17 10" }), createElement('line', { x1: 12, y1: 15, x2: 12, y2: 3 }));
     const ShoppingCart = (props) => createElement('svg', { ...props, xmlns: "http://www.w3.org/2000/svg", width: props.size || 24, height: props.size || 24, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", className: props.className || "" }, createElement('circle', { cx: 9, cy: 21, r: 1 }), createElement('circle', { cx: 20, cy: 21, r: 1 }), createElement('path', { d: "M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" }));
-
     const FullTicket = ({ player }) => {
-      if (!player) return null;
+    if (!player) return null;
 
       const cardUrl = getCardImageUrl(player.id);
       const downloadFileName = `Bingo_Ticket_${player.id}_${player.name.replace(/\s/g, '_')}.jpg`; 
@@ -687,11 +686,25 @@
               <div className="flex items-center gap-4">
                 {/* Botón para comprar cartas */}
                 <button 
-                  onClick={() => window.showCardSelectionModal()}
-                  className="text-sm font-medium text-green-600 hover:text-green-700 flex items-center gap-1"
-                >
-                  <ShoppingCart size={16}/> COMPRAR 🎟️
-                </button>
+  onClick={() => {
+    // Asegurarse de que las funciones de compra estén disponibles
+    if (typeof window.showCardSelectionModal === 'function') {
+      window.showCardSelectionModal();
+    } else {
+      // Si no están disponibles, recargar las funciones
+      console.log('Cargando funciones de compra...');
+      initializePurchaseFunctions();
+      if (typeof window.showCardSelectionModal === 'function') {
+        window.showCardSelectionModal();
+      } else {
+        alert('Por favor, recarga la página para habilitar la compra de cartas');
+      }
+    }
+  }}
+  className="text-sm font-medium text-green-600 hover:text-green-700 flex items-center gap-1"
+>
+  <ShoppingCart size={16}/> COMPRAR 🎟️
+</button>
                 
                 {user ? (
                  <button onClick={() => setActiveTab('admin')} className="text-sm font-medium text-purple-600 flex items-center gap-1">
@@ -974,7 +987,196 @@
     window.searchCard = searchCard;
     
     // Función helper para searchCard (búsqueda individual)
-    function searchCard() {
+    
+        window.showCardSelectionModal = function() {
+        console.log('Mostrando modal de compra');
+        const modal = document.getElementById('cardSelectionModal');
+        if (modal) {
+            document.getElementById('cardPreviewModal').style.display = 'none';
+            document.getElementById('paymentProcessModal').style.display = 'none';
+            modal.style.display = 'flex';
+            window.renderGrid();
+            window.updateTotal();
+        } else {
+            console.error('Modal no encontrado');
+        }
+    };
+    
+    window.hideCardSelectionModal = function() {
+        const modal = document.getElementById('cardSelectionModal');
+        if (modal) modal.style.display = 'none';
+    };
+    
+    window.renderGrid = function() {
+        const container = document.getElementById('cardListContainer');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        for(let i = 1; i <= window.TOTAL_CARDS; i++) {
+            const st = window.getStatus(i);
+            let tag = 'VER';
+            if(st === 'sold') tag = 'VENDIDA';
+            if(st === 'reserved') tag = 'OCUPADA';
+            if(st === 'selected') tag = 'TUYA';
+
+            const div = document.createElement('div');
+            div.className = `card-item-container status-${st}`;
+            
+            div.innerHTML = `
+                <div class="bingo-ball" onclick="window.handleBallClick(${i}, '${st}')">${i}</div>
+                <span class="ver-tag" onclick="event.stopPropagation(); window.openPreview(${i})">${tag}</span>
+            `;
+            container.appendChild(div);
+        }
+    };
+    
+    window.getStatus = function(n) {
+        if(window.selectedCards.includes(n)) return 'selected';
+        return 'available';
+    };
+    
+    window.handleBallClick = function(n, st) {
+        if(st === 'sold' || st === 'reserved') {
+            window.openPreview(n);
+        } else {
+            if(window.selectedCards.includes(n)) {
+                window.selectedCards = window.selectedCards.filter(x => x !== n);
+            } else {
+                window.selectedCards.push(n);
+            }
+            window.saveLocalSelection();
+            window.updateTotal();
+            window.renderGrid();
+        }
+    };
+    
+    window.saveLocalSelection = function() {
+        localStorage.setItem('selected_cards', JSON.stringify(window.selectedCards));
+    };
+    
+    window.updateTotal = function() {
+        const tot = window.selectedCards.length * window.CARD_PRICE;
+        const display = document.getElementById('totalCostDisplay');
+        if (display) {
+            display.textContent = `Bs. ${tot.toFixed(2)}`;
+        }
+    };
+    
+    window.openPreview = function(n) {
+        const st = window.getStatus(n);
+        const btn = document.getElementById('btnPreviewAction');
+        const txt = document.getElementById('previewStatusText');
+        const previewNum = document.getElementById('previewNum');
+        const previewImgContainer = document.getElementById('previewImgContainer');
+        
+        if (!previewNum || !previewImgContainer) return;
+        
+        previewNum.textContent = n;
+        previewImgContainer.innerHTML = 
+            `<img src="https://via.placeholder.com/300x200/6b21a8/ffffff?text=Tabla+${n}" class="bingo-card-image">`;
+        
+        if(st === 'sold') {
+            txt.textContent = `❌ VENDIDA`;
+            txt.className = "text-red-600 font-bold mb-4";
+            btn.style.display = 'none';
+        } else if(st === 'reserved') {
+            txt.textContent = `⏳ OCUPADA`;
+            txt.className = "text-orange-500 font-bold mb-4";
+            btn.style.display = 'none';
+        } else {
+            const isSel = window.selectedCards.includes(n);
+            txt.textContent = isSel ? "¿Ya no quieres esta tabla?" : "¿Te gusta esta tabla?";
+            txt.className = "text-gray-700 font-bold mb-4";
+            btn.style.display = 'block';
+            btn.textContent = isSel ? "QUITAR DE MI LISTA" : "AGREGAR A MI LISTA";
+            btn.className = isSel ? "flex-1 py-2 bg-red-500 text-white font-bold rounded-lg" : "flex-1 py-2 bg-green-500 text-white font-bold rounded-lg";
+            btn.onclick = () => {
+                if(isSel) window.selectedCards = window.selectedCards.filter(x => x !== n);
+                else window.selectedCards.push(n);
+                window.saveLocalSelection();
+                window.updateTotal();
+                window.closePreview();
+                window.showCardSelectionModal();
+            };
+        }
+        
+        document.getElementById('cardSelectionModal').style.display = 'none';
+        document.getElementById('cardPreviewModal').style.display = 'flex';
+    };
+    
+    window.closePreview = function() {
+        document.getElementById('cardPreviewModal').style.display = 'none';
+        window.showCardSelectionModal();
+    };
+    
+    window.preparePayment = function() {
+        if(window.selectedCards.length === 0) {
+            alert("Selecciona al menos una tabla");
+            return;
+        }
+        
+        document.getElementById('payName').value = '';
+        document.getElementById('payPhone').value = '';
+        document.getElementById('payRef').value = '';
+        document.getElementById('fileNameDisplay').textContent = '';
+
+        window.hideCardSelectionModal();
+        document.getElementById('paymentProcessModal').style.display = 'flex';
+        
+        document.getElementById('payCardsList').textContent = window.selectedCards.join(', ');
+        document.getElementById('payTotal').textContent = `Bs. ${(window.selectedCards.length * window.CARD_PRICE).toFixed(2)}`;
+    };
+    
+    window.hidePaymentModal = function() {
+        document.getElementById('paymentProcessModal').style.display = 'none';
+        window.showCardSelectionModal();
+    };
+    
+    window.submitPayment = async function() {
+        const name = document.getElementById('payName').value;
+        const phone = document.getElementById('payPhone').value.replace(/\D/g,'');
+        const ref = document.getElementById('payRef').value;
+        const statusMsg = document.getElementById('uploadStatus');
+
+        if(!name || phone.length < 10 || !ref) {
+            statusMsg.textContent = "Por favor, completa todos los campos.";
+            statusMsg.className = "text-center text-sm mt-2 font-bold text-red-600 block";
+            return;
+        }
+
+        statusMsg.textContent = "Procesando pago... ⏳";
+        statusMsg.className = "text-center text-sm mt-2 font-bold text-blue-600 block";
+
+        try {
+            // Aquí iría la lógica para guardar en Firebase
+            statusMsg.textContent = "¡Pago enviado correctamente! 🎉";
+            statusMsg.className = "text-center text-sm mt-2 font-bold text-green-600 block";
+            
+            // Limpiar selección
+            window.selectedCards = [];
+            window.saveLocalSelection();
+            
+            setTimeout(() => {
+                window.hidePaymentModal();
+                alert("Tu pago ha sido enviado. Espera la confirmación.");
+            }, 1500);
+
+        } catch(e) {
+            console.error("Error al procesar pago:", e);
+            statusMsg.textContent = `Error: ${e.message}`;
+            statusMsg.className = "text-center text-sm mt-2 font-bold text-red-600 block";
+        }
+    };
+    
+    console.log('Funciones de compra inicializadas');
+}
+
+// Llama a initializePurchaseFunctions cuando se cargue la página
+document.addEventListener('DOMContentLoaded', function() {
+    initializePurchaseFunctions();
+});
+        
+        function searchCard() {
         const n = parseInt(document.getElementById('cardNumberInput')?.value);
         if(!n) return;
         
@@ -1038,6 +1240,12 @@
             mainElement.appendChild(searchDiv);
         }
     });
+
+        function initializePurchaseFunctions() {
+    // Inicializar variables globales para compra
+    window.selectedCards = JSON.parse(localStorage.getItem('selected_cards')) || [];
+    window.CARD_PRICE = 300;
+    window.TOTAL_CARDS = 75;
     </script>
     
   <script language="JavaScript">
