@@ -14,13 +14,13 @@
     <script>
         // 🚨 TU CONFIGURACIÓN DE FIREBASE 🚨
         const firebaseConfig = {
-            apiKey: "AIzaSyCwrGuhYZkfnH-Yva8CwaEMfEYhzCByrRA",
-            authDomain: "omegareserva369-34542.firebaseapp.com",
-            databaseURL: "https://omegareserva369-34542-default-rtdb.firebaseio.com",
-            projectId: "omegareserva369-34542",
-            storageBucket: "omegareserva369-34542.firebasestorage.app",
-            messagingSenderId: "1023263517856",
-            appId: "1:1023263517856:web:8dec670aac92b8693a6dc5"
+             apiKey: "AIzaSyABUyIEpsAFAJMWAhPXbURFBbyRITj79xM",
+             authDomain: "bingoreservas.firebaseapp.com",
+             databaseURL: "https://bingoreservas-default-rtdb.firebaseio.com",
+             projectId: "bingoreservas",
+             storageBucket: "bingoreservas.firebasestorage.app",
+             messagingSenderId: "198500053040",
+             appId: "1:198500053040:web:865b757df05fe4c5c07df5"
         };
         
         firebase.initializeApp(firebaseConfig);
@@ -312,7 +312,7 @@
         // 🚨 EDITA ESTA CADENA PARA FIJAR LA HORA DEL PRÓXIMO BINGO 🚨
         // Formato: Mes Día, Año Hora:Minuto:Segundo
         // Ejemplo: 'November 30, 2025 20:30:00' (30 Nov 2025, 8:30 PM)
-        const BINGO_DATE_STRING = 'December 4, 2025 20:00:00'; 
+        const BINGO_DATE_STRING = 'December 30, 2025 20:00:00'; 
         const BINGO_DATE = new Date(BINGO_DATE_STRING).getTime(); 
         
         // ==========================================================
@@ -666,7 +666,7 @@
         }
 
         async function submitPayment() {
-            const YOUR_CLOUD_NAME = "dcenrp74j"; 
+            const YOUR_CLOUD_NAME = "dwhsdurag"; 
             const YOUR_UPLOAD_PRESET = "bingo_comprobantes"; 
             
             const name = document.getElementById('payName').value;
