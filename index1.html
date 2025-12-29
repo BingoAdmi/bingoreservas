@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMEGA Bingo - Panel Oficial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen">
+
+    <div id="adminPanel" class="admin-panel hidden">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-8 bg-white p-4 rounded-xl shadow-md">
+                <h1 class="text-2xl font-extrabold text-purple-800">🔐 Panel de Control OMEGA</h1>
+                <button onclick="adminLogout()" class="px-4 py-2 bg-red-500 text-white font-bold rounded hover:bg-red-600">Salir</button>
+            </div>
+
+            <div id="adminLogin" class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg">
+                <h2 class="text-xl font-bold mb-4 text-gray-700">Iniciar Sesión Admin</h2>
+                <input type="email" id="adminEmail" placeholder="Correo" class="w-full p-3 border rounded mb-3">
+                <input type="password" id="adminPassword" placeholder="Contraseña" class="w-full p-3 border rounded mb-4">
+                <button onclick="adminLogin()" class="w-full py-3 bg-purple-600 text-white font-bold rounded hover:bg-purple-700">ENTRAR</button>
+                <p id="adminLoginError" class="text-red-500 text-sm mt-3 hidden"></p>
+            </div>
+
+            <div id="adminDashboard" class="hidden space-y-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg border-t-8 border-yellow-400">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                        ⚠️ Pagos Pendientes por Confirmar (<span id="pendingCount">0</span>)
+                    </h2>
+                    <div id="pendingCardsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg border-t-8 border-green-500">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-gray-800">✅ Historial de Ventas (<span id="soldCount">0</span>)</h2>
+                        <button onclick="downloadSoldList()" class="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700">Descargar CSV</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm text-left text-gray-600">
+                            <thead class="bg-gray-100 uppercase font-bold">
+                                <tr><th class="p-3">Nombre</th><th class="p-3">Tlf</th><th class="p-3">Tablas</th><th class="p-3">Acción</th></tr>
+                            </thead>
+                            <tbody id="soldPlayersTableBody" class="divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="clientContent">
+        <div class="max-w-xl mx-auto p-4 pb-20">
+            <div class="bg-yellow-400 p-4 rounded-t-xl text-center shadow-lg border-b-4 border-purple-800 mb-4">
+                <p class="font-black text-xl text-gray-900">¡OMEGA BINGO MAYOR!</p>
+                <div class="mt-2 p-2 bg-purple-800 rounded-lg">
+                    <p class="text-purple-200 text-xs font-bold uppercase tracking-widest">
+                        Próximo Juego: <span id="bingoDateDisplay">--</span>
+                    </p>
+                    <div id="countdownTimer">--:--:--</div>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-lg text-center mb-6 border border-gray-200">
+                <p class="font-bold text-gray-600">Valor de la Tabla</p>
+                <p class="text-3xl font-black text-green-600">Bs. 100,00</p>
+                <div class="mt-2 flex justify-center gap-4 text-sm">
+                    <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-bold">Disponibles: <span id="availableCount">--</span></span>
+                </div>
+            </div>
+
+            <div class="text-center mb-10 mt-8">
+    <!-- Usamos font-extrabold para más impacto y drop-shadow para un efecto limpio -->
+    <h1 class="text-5xl font-extrabold text-yellow-400 drop-shadow-lg md:text-6xl" style="text-shadow: 2px 2px 0 #5b21b6;">
+        OMEGA
+    </h1>
+    <!-- Subtítulo con un color contrastante y margin-top -->
+    <p class="text-purple-200 mt-2 text-sm font-semibold tracking-wide">
+        Sistema de Reserva Online
+    </p>
+</div>
+
+            <div class="bg-white p-5 rounded-xl shadow-xl mb-8 border-l-4 border-purple-600">
+    <!-- ... (El H3 y SVG están bien) ... -->
+    <h3 class="font-bold text-gray-800 mb-4 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+        Datos Pago Móvil
+    </h3>
+    <div class="space-y-3 text-sm text-gray-600">
+        <!-- Añadimos `py-1` para más aire vertical y un hover suave -->
+        <div class="flex justify-between items-center border-b pb-1">
+            <span>Banco:</span> 
+            <span onclick="copyToClipboard('0108')" class="font-bold text-gray-900 cursor-pointer flex items-center gap-2 hover:text-purple-600 transition-colors">
+                0108 (Provincial) <i class="fas fa-clipboard text-xs opacity-60"></i>
+            </span>
+        </div>
+        <div class="flex justify-between items-center border-b pb-1">
+            <span>Cédula:</span> 
+             <span onclick="copyToClipboard('25822059')" class="font-bold text-gray-900 cursor-pointer flex items-center gap-2 hover:text-purple-600 transition-colors">
+                V25822059 <i class="fas fa-clipboard text-xs opacity-60"></i>
+            </span>
+        </div>
+        <div class="flex justify-between items-center">
+            <span>Teléfono:</span> 
+            <span onclick="copyToClipboard('04129546751')" class="font-bold text-gray-900 cursor-pointer flex items-center gap-2 hover:text-purple-600 transition-colors">
+                04129546751 <i class="fas fa-clipboard text-xs opacity-60"></i>
+            </span>
+        </div>
+    </div>
+</div>
+
+            <button onclick="showCardSelectionModal()" class="w-full py-4 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-black text-xl rounded-xl shadow-xl hover:scale-[1.02] transition-transform mb-8 uppercase tracking-wide">
+                Comprar Tablas 🎟️
+            </button>
+
+            <div class="grid gap-4">
+                <div class="bg-white p-5 rounded-xl shadow-md">
+                    <h3 class="font-bold text-gray-700 mb-2">🔍 Consultar por Teléfono</h3>
+                    <div class="flex gap-2">
+                        <input type="tel" id="searchPhoneInput" placeholder="Ej: 0412..." class="w-full p-2 border rounded bg-gray-50">
+                        <button onclick="searchCardByPhone()" class="bg-purple-600 text-white px-4 rounded font-bold">Ver</button>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-md">
+                    <h3 class="font-bold text-gray-700 mb-2">🆔 Ver Tabla Individual</h3>
+                    <div class="flex gap-2">
+                        <input type="number" id="cardNumberInput" placeholder="N° Tabla" class="w-full p-2 border rounded bg-gray-50">
+                        <button onclick="searchCard()" class="bg-purple-600 text-white px-4 rounded font-bold">Ver</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="searchResultArea" class="hidden mt-6 bg-white p-4 rounded-xl shadow-xl text-center border-2 border-purple-100">
+                <h3 id="resultTitle" class="font-bold text-lg text-purple-800 mb-2"></h3>
+                <div id="resultContent" class="flex justify-center flex-wrap gap-4"></div>
+                <p id="resultStatus" class="text-sm font-bold mt-2"></p>
+            </div>
+
+            <div class="mt-12 text-center">
+    <img src="logo-omega-bingo.png" id="footer-logo" class="mx-auto w-24 rounded-full shadow-xl bg-white p-1" alt="Logo">
+    <h3 class="text-xl font-bold text-white mt-4 mb-4">Síguenos en Redes Sociales</h3>
+    <div class="flex justify-center space-x-8 mb-8">
+        <!-- Usa clases de utilidad para los colores en lugar de style="" -->
+        <a href="https://wa.me/584226431972" target="_blank" class="text-green-500 hover:text-green-400 transition-transform transform hover:scale-110" title="WhatsApp">
+            <i class="fab fa-whatsapp fa-3x"></i>
+        </a>
+        <a href="https://www.facebook.com/OmegabingoAA/" target="_blank" class="text-blue-600 hover:text-blue-500 transition-transform transform hover:scale-110" title="Facebook">
+            <i class="fab fa-facebook-square fa-3x"></i>
+        </a>
+                    <a href="https://www.instagram.com/omega_bingo?igsh=MTY4czZ0NDltZ2gxZA==" target="_blank" class="text-white hover:text-pink-600 transition-colors" title="Instagram">
+                        <i class="fab fa-instagram fa-3x"></i>
+                    </a>
+                </div>
+
+                <div class="flex justify-center space-x-4 mb-6 text-sm">
+                    <button onclick="showLegalModal('terms')" class="text-yellow-300 font-bold hover:underline">Términos y Condiciones</button>
+                    <span class="text-purple-300">|</span>
+                    <button onclick="showLegalModal('privacy')" class="text-yellow-300 font-bold hover:underline">Política de Privacidad</button>
+                </div>
+
+                <p class="text-xs text-purple-200 mt-4">© OMEGA Bingo / Masson 2025. Todos los derechos reservados</p>
+                <img src="logo-masson-bingo.png" id="footer-logo-masson" class="h-auto w-16 inline-block" alt="logo"> 
+            </div>
+            </div>
+    </div>
+
+    <div id="cardSelectionModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="text-xl font-bold text-gray-800">Selecciona tus Tablas</h3>
+                <button onclick="hideCardSelectionModal()" class="text-2xl text-gray-500">&times;</button>
+            </div>
+            
+            <div class="flex justify-between text-[10px] font-bold text-gray-500 mb-4 px-2">
+                <span class="flex items-center"><div class="w-3 h-3 bg-purple-700 rounded-full mr-1"></div> Libre</span>
+                <span class="flex items-center"><div class="w-3 h-3 bg-yellow-400 rounded-full mr-1"></div> Tuya</span>
+                <span class="flex items-center"><div class="w-3 h-3 bg-orange-500 rounded-full mr-1"></div> Ocupada</span>
+                <span class="flex items-center"><div class="w-3 h-3 bg-green-600 rounded-full mr-1"></div> Vendida</span>
+            </div>
+
+            <div id="cardListContainer" class="grid grid-cols-6 sm:grid-cols-8 gap-2 max-h-[60vh] overflow-y-auto p-1">
+                </div>
+
+            <div class="mt-4 border-t pt-4">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-gray-600 font-bold">Total a Pagar:</span>
+                    <span id="totalCostDisplay" class="text-2xl font-black text-green-600">Bs. 0,00</span>
+                </div>
+                <button onclick="preparePayment()" class="w-full py-3 bg-purple-600 text-white font-bold rounded-lg shadow-lg hover:bg-purple-700 transition">
+                    CONTINUAR A PAGO
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cardPreviewModal" class="modal">
+        <div class="modal-content text-center">
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Tabla N° <span id="previewNum" class="text-purple-600"></span></h3>
+            <div id="previewImgContainer" class="flex justify-center mb-4 p-2 bg-gray-100 rounded-lg"></div>
+            <p id="previewStatusText" class="font-bold mb-4"></p>
+            <div class="flex gap-3 justify-center">
+                <button id="btnPreviewAction" class="flex-1 py-2 bg-green-500 text-white font-bold rounded-lg shadow">LO QUIERO</button>
+                <button onclick="closePreview()" class="flex-1 py-2 bg-gray-300 text-gray-700 font-bold rounded-lg">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="paymentProcessModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-bold text-purple-800">Confirmar Pago</h3>
+                <button onclick="hidePaymentModal()" class="text-2xl">&times;</button>
+            </div>
+            
+            <div class="bg-orange-100 text-orange-900 p-4 rounded-xl shadow-lg mb-6 border-2 border-orange-300">
+    
+    <!-- Sección del Temporizador (Urgencia) -->
+    <p class="text-center text-sm font-semibold mb-3 border-b pb-3 border-orange-200">
+        ⏳ Tienes <span id="paymentTimer" class="text-red-600 text-lg font-bold">05:00</span> para enviar el capture.
+    </p>
+
+    <!-- Sección de Datos de Pago (Confianza/Claridad) -->
+    <div class="pt-3">
+        <p class="font-bold text-base text-center mb-3 text-purple-800">Datos para Pago Móvil</p>
+        
+        <!-- Usamos una cuadrícula para organizar los datos de forma limpia -->
+        <div class="grid grid-cols-3 gap-3 text-sm">
+            
+            <!-- Cédula -->
+            <div onclick="copyToClipboard('25822059')" class="col-span-1 bg-white p-3 rounded-lg shadow-sm cursor-pointer hover:bg-gray-50 transition-colors border">
+                <span class="font-semibold text-gray-500 block">Cédula:</span>
+                <span class="font-bold text-purple-700 flex items-center justify-between">
+                    25822059 <i class="fas fa-clipboard text-xs opacity-60"></i>
+                </span>
+            </div>
+
+            <!-- Teléfono -->
+            <div onclick="copyToClipboard('04226431972')" class="col-span-1 bg-white p-3 rounded-lg shadow-sm cursor-pointer hover:bg-gray-50 transition-colors border">
+                <span class="font-semibold text-gray-500 block">Teléfono:</span>
+                <span class="font-bold text-purple-700 flex items-center justify-between">
+                    0422... <i class="fas fa-clipboard text-xs opacity-60"></i>
+                </span>
+            </div>
+
+            <!-- Banco y Código -->
+            <div onclick="copyToClipboard('0108')" class="col-span-1 bg-white p-3 rounded-lg shadow-sm cursor-pointer hover:bg-gray-50 transition-colors border">
+                <span class="font-semibold text-gray-500 block">Banco:</span>
+                <span class="font-bold text-purple-700 flex items-center justify-between">
+                    0108 <i class="fas fa-clipboard text-xs opacity-60"></i>
+                </span>
+            </div>
+            
+            <p class="col-span-3 text-xs text-center mt-2 text-gray-600">
+                (Provincial Banco Universal)
+            </p>
+        </div>
+    </div>
+</div>
+            <div class="space-y-3 mb-4">
+                <div class="flex justify-between text-sm border-b border-dashed pb-1">
+                    <span>Tablas:</span> <span id="payCardsList" class="font-bold text-purple-700"></span>
+                </div>
+                <div class="flex justify-between text-sm border-b border-dashed pb-1">
+                    <span>Total:</span> <span id="payTotal" class="font-bold text-green-600 text-lg"></span>
+                </div>
+            </div>
+
+            <form id="paymentForm" onsubmit="event.preventDefault(); submitPayment();" class="space-y-3">
+                <input type="text" id="payName" placeholder="Nombre y Apellido" class="w-full p-3 border rounded bg-gray-50" required>
+                <input type="tel" id="payPhone" placeholder="Teléfono (WhatsApp)" class="w-full p-3 border rounded bg-gray-50" required>
+                <input type="number" id="payRef" placeholder="Últimos 4 dígitos Referencia" class="w-full p-3 border rounded bg-gray-50" required>
+                
+                <div class="border-2 border-dashed border-purple-300 rounded-lg p-4 text-center bg-purple-50 cursor-pointer relative">
+                    <input type="file" id="payFile" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" required>
+                    <p class="text-purple-600 font-bold text-sm">📸 Toca aquí para subir CAPTURE</p>
+                    <p id="fileNameDisplay" class="text-xs text-gray-500 mt-1"></p>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-green-600 text-white font-bold rounded-lg shadow-lg hover:bg-green-700 transition">
+                    ENVIAR COMPROBANTE 🚀
+                </button>
+            </form>
+            <p id="uploadStatus" class="text-center text-sm mt-2 font-bold hidden"></p>
+        </div>
+    </div>
+
+    <div id="legalModal" class="modal">
+        <div class="modal-legal-content">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 id="legalModalTitle" class="text-xl font-bold text-gray-800"></h3>
+                <button onclick="hideLegalModal()" class="text-2xl text-gray-500">&times;</button>
+            </div>
+            
+            <div id="legalModalBody" class="modal-legal-body text-sm text-gray-700">
+                </div>
+
+        </div>
+    </div>
+<div id="toast-notification" class="toast-hidden">
+    <!-- Icono de check o similar (puedes usar un emoji si quieres) -->
+    ✅
+    <span id="toast-message"></span>
+</div>
+<script src="firebase-config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
