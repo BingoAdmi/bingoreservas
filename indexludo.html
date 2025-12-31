@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUDOS CLUB CASINO | Juega y Gana en Grande 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo-container" id="secretAdminTrigger">
+            <div class="logo-bg">
+                <img src="https://i.imgur.com/YOUR_UPLOADED_LOGO_HERE.png" alt="Ludos Club Logo" class="main-logo">
+                <span>LUDOS CLUB</span>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#reglas">Reglas</a></li>
+            <li><a href="#ganadores">Muro de la Fama</a></li>
+            <li><a href="#politicas">Privacidad</a></li>
+             <li class="safe-play"><i class="fa-solid fa-shield-halved"></i> Juego Seguro +18</li>
+        </ul>
+    </nav>
+
+    <header class="hero">
+        <h1 class="glitch-text" data-text="BIENVENIDO AL NIVEL SIGUIENTE">BIENVENIDO AL NIVEL SIGUIENTE</h1>
+        <p>El club de Ludo más exclusivo. Salas verificadas. Pagos rápidos. ¿Tienes lo necesario?</p>
+    </header>
+
+    <section class="live-stats-banner">
+        <div class="stat-item">
+            <i class="fa-solid fa-users"></i>
+            <span id="totalPlayersOnline">Cargando...</span> Jugadores Online
+        </div>
+        <div class="stat-item">
+            <i class="fa-solid fa-trophy"></i>
+            <span id="totalPrizePaid">Cargando...</span> Bs. Pagados Hoy
+        </div>
+    </section>
+
+    <section class="rooms-container" id="salas">
+        <div class="room-card basic-room tilt-effect">
+            <div class="card-glow"></div>
+            <div class="card-content">
+                <div class="room-badge">NOVATO</div>
+                <h3>SALA BRONCE</h3>
+                <div class="price-tag">Entrada: 450 Bs</div>
+                <div class="prize-pool">Premio: 1.000 Bs</div>
+                <div class="live-indicator"><span class="blink">●</span> <span id="basicRoomLive">0</span> jugando ahora</div>
+                <p class="desc">Ideal para comenzar. 4 Jugadores. Juego clásico.</p>
+                <a href="LINK_DE_WHATSAPP_SALA_BASICA" target="_blank" class="cyber-button green-glow">
+                    INGRESAR AHORA <i class="fa-brands fa-whatsapp"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="room-card pro-room tilt-effect">
+            <div class="card-glow"></div>
+            <div class="card-content">
+                <div class="room-badge">VETERANO</div>
+                <h3>SALA ORO</h3>
+                <div class="price-tag">Entrada: 600 Bs</div>
+                <div class="prize-pool">Premio: 1.500 Bs</div>
+                <div class="live-indicator"><span class="blink">●</span> <span id="proRoomLive">0</span> jugando ahora</div>
+                <p class="desc">Nivel competitivo. Jugadores serios. Pagos rápidos.</p>
+                 <a href="LINK_DE_WHATSAPP_SALA_PRO" target="_blank" class="cyber-button green-glow">
+                    INGRESAR AHORA <i class="fa-brands fa-whatsapp"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="room-card elite-room tilt-effect">
+            <div class="card-glow"></div>
+            <div class="card-content">
+                <div class="room-badge">VIP / ÉLITE</div>
+                <h3>SALA DIAMANTE</h3>
+                <div class="price-tag">Entrada: 1.500 Bs</div>
+                <div class="prize-pool prize-enormous">Premio: 4.000 Bs</div>
+                <div class="live-indicator"><span class="blink">●</span> <span id="eliteRoomLive">0</span> jugando ahora</div>
+                <p class="desc">Solo para expertos. El premio más alto. Soporte prioritario.</p>
+                 <a href="LINK_DE_WHATSAPP_SALA_ELITE" target="_blank" class="cyber-button green-glow">
+                    INGRESAR AHORA <i class="fa-brands fa-whatsapp"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section id="ganadores" class="winners-section">
+        <h2>ÚLTIMOS GANADORES</h2>
+        <div class="winners-grid" id="winnersFeed">
+            <div class="winner-card skeleton-load">Cargando...</div>
+            <div class="winner-card skeleton-load">Cargando...</div>
+            <div class="winner-card skeleton-load">Cargando...</div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section" id="reglas">
+                <h4>Reglas Clave</h4>
+                <ul>
+                    <li>+18 Años obligatorio.</li>
+                    <li>Pagos verificados antes de recibir código.</li>
+                    <li>Desconexión prolongada = Pérdida.</li>
+                </ul>
+            </div>
+            <div class="footer-section" id="politicas">
+                <h4>Legal y Privacidad</h4>
+                <p>Nos tomamos en serio tus datos. Consulta nuestra política completa aquí. Juego responsable.</p>
+            </div>
+        </div>
+        <p class="copyright">© 2025-2026 LUDOS CLUB. Todos los derechos reservados.</p>
+    </footer>
+
+    <div id="adminModal" class="modal-overlay">
+        <div class="modal-content glass-morphism">
+            <span class="close-modal">&times;</span>
+            <h2>PANEL DE CONTROL "LUDOS BOSS"</h2>
+            <p class="security-notice">Acceso Seguro Nivel 5 Detectado</p>
+
+            <div class="admin-controls-grid">
+                <div class="control-box">
+                    <h3>Gestión de Salas</h3>
+                    <label>Sala Bronce: <input type="checkbox" checked id="toggleBasic"> Activa</label><br>
+                    <label>Sala Oro: <input type="checkbox" checked id="togglePro"> Activa</label><br>
+                    <label>Sala Diamante: <input type="checkbox" checked id="toggleElite"> Activa</label>
+                    <button class="cyber-button small">Actualizar Estado</button>
+                </div>
+                <div class="control-box">
+                    <h3>Registrar Ganador</h3>
+                    <input type="text" placeholder="Nombre Jugador" class="admin-input">
+                    <input type="number" placeholder="Monto Ganado" class="admin-input">
+                    <select class="admin-input">
+                        <option>Sala Bronce</option>
+                        <option>Sala Oro</option>
+                        <option>Sala Diamante</option>
+                    </select>
+                    <button class="cyber-button small blue-glow">Publicar en Muro</button>
+                </div>
+                 <div class="control-box">
+                    <h3>Estadísticas Reales (Data DB)</h3>
+                    <p>Ganancia Admin Hoy: <span class="neon-text">Bs. 4,500</span></p>
+                    <button class="cyber-button small purple-glow">Descargar Reporte CSV</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="script.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js"></script>
+    <script>
+        VanillaTilt.init(document.querySelectorAll(".tilt-effect"), {
+            max: 15,
+            speed: 400,
+            glare: true,
+            "max-glare": 0.2,
+        });
+    </script>
+</body>
+</html>
