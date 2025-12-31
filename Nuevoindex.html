@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>OMEGA BINGO - Sistema de Reserva</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+    
+    <!-- Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="logo-omega-bingo.png">
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-purple-800 to-purple-900">
+    
+    <!-- Overlay de Mantenimiento -->
+    <div id="maintenanceOverlay" class="maintenance-overlay hidden">
+        <div class="maintenance-content">
+            <div class="text-center">
+                <i class="fas fa-tools text-yellow-400 text-6xl mb-4"></i>
+                <h2 class="text-3xl font-bold text-white mb-2">PÁGINA EN MANTENIMIENTO</h2>
+                <p class="text-gray-300 mb-6">Estamos realizando mejoras para ofrecerte un mejor servicio.</p>
+                <p class="text-yellow-300 font-bold">Volveremos pronto</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Administración -->
+    <div id="adminPanel" class="admin-panel hidden">
+        <div class="admin-container">
+            <div class="admin-header">
+                <h1 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-shield-alt mr-3"></i> Panel de Control
+                </h1>
+                <div class="flex items-center space-x-3">
+                    <button onclick="toggleMaintenance()" id="maintenanceBtn" class="btn-maintenance">
+                        <i class="fas fa-power-off mr-2"></i> Cerrar Página
+                    </button>
+                    <button onclick="adminLogout()" class="btn-logout">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Salir
+                    </button>
+                </div>
+            </div>
+
+            <div id="adminLogin" class="admin-login-form">
+                <h2 class="text-xl font-bold text-gray-800 mb-6 text-center">Iniciar Sesión Admin</h2>
+                <div class="space-y-4">
+                    <input type="email" id="adminEmail" placeholder="Correo electrónico" class="input-admin">
+                    <input type="password" id="adminPassword" placeholder="Contraseña" class="input-admin">
+                    <button onclick="adminLogin()" class="btn-admin-login">
+                        <i class="fas fa-lock mr-2"></i> ENTRAR AL PANEL
+                    </button>
+                    <p id="adminLoginError" class="text-red-500 text-sm text-center mt-3 hidden"></p>
+                </div>
+            </div>
+
+            <div id="adminDashboard" class="hidden">
+                <div class="admin-grid">
+                    <!-- Estadísticas -->
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <i class="fas fa-chart-bar text-blue-500"></i>
+                            <h3>Estadísticas</h3>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="stat-box">
+                                <div class="stat-number" id="totalSold">0</div>
+                                <div class="stat-label">Tablas Vendidas</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-number" id="totalRevenue">Bs. 0</div>
+                                <div class="stat-label">Ingresos Totales</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estado de la Tienda -->
+                    <div class="admin-card">
+                        <div class="admin-card-header">
+                            <i class="fas fa-store text-purple-500"></i>
+                            <h3>Estado de la Tienda</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p id="storeStatusText" class="text-lg font-bold">Estado: Cargando...</p>
+                                    <p class="text-sm text-gray-600">Los clientes pueden ver la página</p>
+                                </div>
+                                <div class="toggle-switch" onclick="toggleMaintenance()">
+                                    <input type="checkbox" id="maintenanceToggle">
+                                    <label for="maintenanceToggle"></label>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500">Cuando activas "Cerrar Página", solo tú puedes ver el contenido.</p>
+                        </div>
+                    </div>
+
+                    <!-- Reservas Pendientes -->
+                    <div class="admin-card col-span-2">
+                        <div class="admin-card-header">
+                            <i class="fas fa-clock text-yellow-500"></i>
+                            <h3>Reservas Pendientes (<span id="pendingCount">0</span>)</h3>
+                        </div>
+                        <div id="pendingCardsList" class="pending-list"></div>
+                    </div>
+
+                    <!-- Ventas Confirmadas -->
+                    <div class="admin-card col-span-2">
+                        <div class="admin-card-header">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <h3>Ventas Confirmadas (<span id="soldCount">0</span>)</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Teléfono</th>
+                                        <th>Tablas</th>
+                                        <th>Total</th>
+                                        <th>Fecha</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="soldPlayersTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div id="clientContent">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="flex items-center space-x-4">
+                        <img src="logo-omega-bingo.png" alt="OMEGA Bingo" class="header-logo" id="header-logo" onclick="handleLogoClick()">
+                        <div>
+                            <h1 class="header-title">OMEGA BINGO</h1>
+                            <p class="header-subtitle">Reserva Online Segura</p>
+                        </div>
+                    </div>
+                    
+                    <nav class="nav-menu">
+                        <a href="#inicio" class="nav-link active">INICIO</a>
+                        <a href="#salas" class="nav-link">SALAS</a>
+                        <a href="#consultar" class="nav-link">CONSULTAR</a>
+                        <a href="#contacto" class="nav-link">CONTACTO</a>
+                    </nav>
+                    
+                    <button onclick="showCardSelectionModal()" class="btn-buy-tickets">
+                        <i class="fas fa-ticket-alt mr-2"></i> COMPRAR TABLAS
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section id="inicio" class="hero-section">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h2 class="hero-title">¡GANA GRANDES PREMIOS!</h2>
+                        <p class="hero-subtitle">Reserva tus tablas online y participa en nuestros emocionantes juegos de Bingo</p>
+                        <div class="flex space-x-4 mt-6">
+                            <button onclick="showCardSelectionModal()" class="btn-hero-primary">
+                                <i class="fas fa-shopping-cart mr-2"></i> RESERVAR AHORA
+                            </button>
+                            <a href="#salas" class="btn-hero-secondary">
+                                <i class="fas fa-gamepad mr-2"></i> VER SALAS
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Bingo -->
+            <div class="bingo-info">
+                <div class="container">
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <i class="fas fa-calendar-alt info-icon"></i>
+                            <div>
+                                <p class="info-label">PRÓXIMO JUEGO</p>
+                                <p id="bingoDateDisplay" class="info-value">Cargando...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="info-card">
+                            <i class="fas fa-clock info-icon"></i>
+                            <div>
+                                <p class="info-label">CUENTA REGRESIVA</p>
+                                <p id="countdownTimer" class="info-value text-yellow-300">--:--:--</p>
+                            </div>
+                        </div>
+                        
+                        <div class="info-card">
+                            <i class="fas fa-ticket-alt info-icon"></i>
+                            <div>
+                                <p class="info-label">PRECIO POR TABLA</p>
+                                <p class="info-value text-green-400">Bs. 300,00</p>
+                            </div>
+                        </div>
+                        
+                        <div class="info-card">
+                            <i class="fas fa-chart-pie info-icon"></i>
+                            <div>
+                                <p class="info-label">DISPONIBLES</p>
+                                <p class="info-value"><span id="availableCount">--</span>/75</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ganadores -->
+        <section class="winners-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-trophy mr-3"></i> ÚLTIMOS GANADORES
+                    </h2>
+                    <p class="section-subtitle">Nuestros felices ganadores de la semana</p>
+                </div>
+                
+                <div class="winners-grid">
+                    <div class="winner-card">
+                        <img src="./ganadores/kiko.png" alt="Ganador" class="winner-avatar">
+                        <div class="winner-info">
+                            <h4 class="winner-name">Kiko</h4>
+                            <p class="winner-prize">Bs. 1,500</p>
+                            <span class="winner-game">Bingo Tradicional</span>
+                        </div>
+                    </div>
+                    
+                    <div class="winner-card">
+                        <img src="./ganadores/liliana.png" alt="Ganador" class="winner-avatar">
+                        <div class="winner-info">
+                            <h4 class="winner-name">Liliana</h4>
+                            <p class="winner-prize">Bs. 400</p>
+                            <span class="winner-game">Bingo Tradicional</span>
+                        </div>
+                    </div>
+                    
+                    <div class="winner-card">
+                        <img src="./ganadores/yulimar.png" alt="Ganador" class="winner-avatar">
+                        <div class="winner-info">
+                            <h4 class="winner-name">Yulimar</h4>
+                            <p class="winner-prize">Bs. 500</p>
+                            <span class="winner-game">Bingo Tradicional</span>
+                        </div>
+                    </div>
+                    
+                    <div class="winner-card">
+                        <img src="./ganadores/alexandra.png" alt="Ganador" class="winner-avatar">
+                        <div class="winner-info">
+                            <h4 class="winner-name">Alexandra</h4>
+                            <p class="winner-prize">Bs. 4,200</p>
+                            <span class="winner-game">Bingo Tradicional</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Salas de Bingo -->
+        <section id="salas" class="rooms-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-door-open mr-3"></i> SALAS DE BINGO
+                    </h2>
+                    <p class="section-subtitle">Elige tu sala favorita y comienza a jugar</p>
+                </div>
+                
+                <div class="rooms-grid">
+                    <!-- Sala 1 -->
+                    <div class="room-card">
+                        <div class="room-badge">🏆 PRINCIPAL</div>
+                        <div class="room-image">
+                            <img src="banersala75omega.png" alt="Sala Tradicional">
+                        </div>
+                        <div class="room-content">
+                            <h3 class="room-title">BINGO TRADICIONAL 75</h3>
+                            <p class="room-description">Nuestra sala principal con los mayores premios. Reserva aquí y juega en WhatsApp.</p>
+                            <div class="room-stats">
+                                <div class="stat-item">
+                                    <i class="fas fa-users"></i>
+                                    <span>Jugadores Activos</span>
+                                </div>
+                                <div class="stat-item">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    <span>Bs. 300 por tabla</span>
+                                </div>
+                            </div>
+                            <div class="room-actions">
+                                <button onclick="showCardSelectionModal()" class="btn-room-primary">
+                                    <i class="fas fa-shopping-cart mr-2"></i> RESERVAR TABLAS
+                                </button>
+                                <a href="https://chat.whatsapp.com/EGGD8r6dpU3692oiXlsKAG" target="_blank" class="btn-room-secondary">
+                                    <i class="fab fa-whatsapp mr-2"></i> UNIRSE AL GRUPO
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sala 2 -->
+                    <div class="room-card">
+                        <div class="room-badge">⚡ EXPRESS</div>
+                        <div class="room-image">
+                            <img src="banersalalineasomega.png" alt="Sala Express">
+                        </div>
+                        <div class="room-content">
+                            <h3 class="room-title">BINGO EXPRESS</h3>
+                            <p class="room-description">Juegos rápidos y emocionantes. Perfecto para quienes buscan acción constante.</p>
+                            <div class="room-stats">
+                                <div class="stat-item">
+                                    <i class="fas fa-bolt"></i>
+                                    <span>Juegos Rápidos</span>
+                                </div>
+                                <div class="stat-item">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    <span>Bs. 200 por tabla</span>
+                                </div>
+                            </div>
+                            <div class="room-actions">
+                                <button onclick="showCardSelectionModal()" class="btn-room-primary">
+                                    <i class="fas fa-shopping-cart mr-2"></i> RESERVAR TABLAS
+                                </button>
+                                <a href="https://chat.whatsapp.com/CIL8NiFHcbvAQwEw9Xwfiq" target="_blank" class="btn-room-secondary">
+                                    <i class="fab fa-whatsapp mr-2"></i> UNIRSE AL GRUPO
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Información de Pago -->
+        <section class="payment-info">
+            <div class="container">
+                <div class="payment-card">
+                    <div class="payment-header">
+                        <i class="fas fa-mobile-alt text-3xl text-yellow-400"></i>
+                        <h3 class="payment-title">Datos para Pago Móvil</h3>
+                    </div>
+                    <div class="payment-grid">
+                        <div class="payment-detail">
+                            <p class="detail-label">Banco:</p>
+                            <p class="detail-value copyable" data-text="0108 Provincial">
+                                0108 Provincial <i class="fas fa-copy ml-2"></i>
+                            </p>
+                        </div>
+                        <div class="payment-detail">
+                            <p class="detail-label">Cédula:</p>
+                            <p class="detail-value copyable" data-text="V25822059">
+                                V25822059 <i class="fas fa-copy ml-2"></i>
+                            </p>
+                        </div>
+                        <div class="payment-detail">
+                            <p class="detail-label">Teléfono:</p>
+                            <p class="detail-value copyable" data-text="04129546751">
+                                04129546751 <i class="fas fa-copy ml-2"></i>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="payment-note">
+                        <i class="fas fa-info-circle text-blue-400"></i>
+                        <p>Envía el capture de tu pago para confirmar la reserva</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Consultar Tablas -->
+        <section id="consultar" class="consult-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-search mr-3"></i> CONSULTAR RESERVAS
+                    </h2>
+                    <p class="section-subtitle">Verifica el estado de tus tablas reservadas</p>
+                </div>
+                
+                <div class="consult-grid">
+                    <div class="consult-card">
+                        <div class="consult-icon">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <h4 class="consult-title">Buscar por Teléfono</h4>
+                        <p>Ingresa tu número de teléfono para ver todas tus reservas</p>
+                        <div class="consult-form">
+                            <input type="tel" id="searchPhoneInput" placeholder="Ej: 0412-1234567" class="consult-input">
+                            <button onclick="searchCardByPhone()" class="consult-btn">
+                                <i class="fas fa-search mr-2"></i> BUSCAR
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="consult-card">
+                        <div class="consult-icon">
+                            <i class="fas fa-hashtag"></i>
+                        </div>
+                        <h4 class="consult-title">Buscar por Número de Tabla</h4>
+                        <p>Ingresa el número específico de tabla para ver su estado</p>
+                        <div class="consult-form">
+                            <input type="number" id="cardNumberInput" placeholder="Número de tabla" class="consult-input">
+                            <button onclick="searchCard()" class="consult-btn">
+                                <i class="fas fa-eye mr-2"></i> VER
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="searchResultArea" class="hidden">
+                    <div class="result-header">
+                        <h3 id="resultTitle" class="result-title"></h3>
+                        <button onclick="hideSearchResults()" class="result-close">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="resultContent" class="result-content"></div>
+                    <p id="resultStatus" class="result-status"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer id="contacto" class="main-footer">
+            <div class="container">
+                <div class="footer-grid">
+                    <div class="footer-col">
+                        <img src="logo-omega-bingo.png" alt="OMEGA Bingo" class="footer-logo">
+                        <h3 class="footer-title">OMEGA BINGO</h3>
+                        <p class="footer-text">¡Diversión segura y premios garantizados!</p>
+                    </div>
+                    
+                    <div class="footer-col">
+                        <h4 class="footer-subtitle">CONTACTO</h4>
+                        <div class="contact-info">
+                            <a href="https://wa.me/584226431972" target="_blank" class="contact-item">
+                                <i class="fab fa-whatsapp"></i>
+                                <span>+58 424 123 4567</span>
+                            </a>
+                            <a href="mailto:info@omegabingo.com" class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>info@omegabingo.com</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="footer-col">
+                        <h4 class="footer-subtitle">REDES SOCIALES</h4>
+                        <div class="social-links">
+                            <a href="https://www.facebook.com/profile.php?id=61558597798025" target="_blank" class="social-link">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="https://www.instagram.com/omega_bingo" target="_blank" class="social-link">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="https://chat.whatsapp.com/EGGD8r6dpU3692oiXlsKAG" target="_blank" class="social-link">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="footer-col">
+                        <h4 class="footer-subtitle">LEGAL</h4>
+                        <div class="legal-links">
+                            <button onclick="showLegalModal('terms')" class="legal-link">
+                                Términos y Condiciones
+                            </button>
+                            <button onclick="showLegalModal('privacy')" class="legal-link">
+                                Política de Privacidad
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="footer-bottom">
+                    <p class="copyright">© 2024 OMEGA BINGO. Todos los derechos reservados.</p>
+                    <p class="disclaimer">Juego responsable. Prohibida la venta a menores de edad.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modal de Selección de Tablas -->
+    <div id="cardSelectionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-ticket-alt mr-2"></i> Seleccionar Tablas
+                </h3>
+                <button onclick="hideCardSelectionModal()" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="status-legend">
+                    <div class="status-item">
+                        <div class="status-dot bg-purple-600"></div>
+                        <span>Disponible</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-dot bg-yellow-400"></div>
+                        <span>Seleccionada</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-dot bg-orange-500"></div>
+                        <span>Reservada</span>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-dot bg-green-500"></div>
+                        <span>Vendida</span>
+                    </div>
+                </div>
+                
+                <div id="cardListContainer" class="cards-grid"></div>
+            </div>
+            
+            <div class="modal-footer">
+                <div class="summary">
+                    <div class="summary-item">
+                        <span>Tablas seleccionadas:</span>
+                        <span id="selectedCount" class="font-bold">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total a pagar:</span>
+                        <span id="totalCostDisplay" class="total-cost">Bs. 0,00</span>
+                    </div>
+                </div>
+                <button onclick="preparePayment()" id="continueBtn" class="btn-continue" disabled>
+                    <i class="fas fa-arrow-right mr-2"></i> CONTINUAR AL PAGO
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Pago -->
+    <div id="paymentProcessModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-credit-card mr-2"></i> Confirmar Pago
+                </h3>
+                <button onclick="hidePaymentModal()" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="alert-warning">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <p class="font-bold">Tiempo límite: <span id="paymentTimer" class="text-red-500">05:00</span></p>
+                        <p class="text-sm">Envía el comprobante dentro del tiempo establecido</p>
+                    </div>
+                </div>
+                
+                <div class="payment-summary">
+                    <div class="summary-item">
+                        <span>Tablas seleccionadas:</span>
+                        <span id="payCardsList" class="font-bold text-purple-600"></span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total a pagar:</span>
+                        <span id="payTotal" class="font-bold text-green-600 text-xl"></span>
+                    </div>
+                </div>
+                
+                <form id="paymentForm" class="payment-form">
+                    <div class="form-group">
+                        <label for="payName" class="form-label">
+                            <i class="fas fa-user mr-2"></i> Nombre completo
+                        </label>
+                        <input type="text" id="payName" class="form-input" placeholder="Ingresa tu nombre y apellido" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="payPhone" class="form-label">
+                            <i class="fas fa-phone mr-2"></i> Teléfono (WhatsApp)
+                        </label>
+                        <input type="tel" id="payPhone" class="form-input" placeholder="0412-1234567" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="payRef" class="form-label">
+                            <i class="fas fa-hashtag mr-2"></i> Referencia de pago
+                        </label>
+                        <input type="text" id="payRef" class="form-input" placeholder="Últimos 4 dígitos de la referencia" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-camera mr-2"></i> Comprobante de pago
+                        </label>
+                        <div class="file-upload">
+                            <input type="file" id="payFile" accept="image/*" class="file-input" required>
+                            <div class="file-label">
+                                <i class="fas fa-cloud-upload-alt text-3xl text-purple-500"></i>
+                                <p class="file-text">Haz clic para subir tu comprobante</p>
+                                <p id="fileNameDisplay" class="file-name"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-instructions">
+                        <p class="font-bold mb-2">Instrucciones de pago:</p>
+                        <ul class="instructions-list">
+                            <li>Realiza el pago móvil a los datos proporcionados</li>
+                            <li>Toma una captura de pantalla del comprobante</li>
+                            <li>Sube la imagen en el campo anterior</li>
+                            <li>Tu reserva será confirmada en minutos</li>
+                        </ul>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit-payment">
+                        <i class="fas fa-paper-plane mr-2"></i> ENVIAR COMPROBANTE
+                    </button>
+                </form>
+                <p id="uploadStatus" class="upload-status hidden"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Legal -->
+    <div id="legalModal" class="modal">
+        <div class="modal-content legal-modal">
+            <div class="modal-header">
+                <h3 id="legalModalTitle" class="modal-title"></h3>
+                <button onclick="hideLegalModal()" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="legalModalBody" class="modal-body legal-body"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
